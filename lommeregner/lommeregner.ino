@@ -41,15 +41,16 @@
 #include <LiquidCrystal.h>
 
 // initialize the library with the numbers of the interface pins
-LiquidCrystal lcd(10, 11, 12, 13, 14, 15, 16);
+LiquidCrystal lcd(2, 3, 4, 5, 6, 7, 8);
 
-int potPin = 2;
+int potPin = 1;
 int butPin = 10;
-int stage = 1;
 int val1;
 int val2;
 int operation;
+int result;
 
+String sOperator;
 String calc;
 
 void setup() {
@@ -58,7 +59,7 @@ void setup() {
   // Print a message to the LCD.
   //lcd.print("hello, world!");
  Serial.begin(9600);
-  pinMode(butPin, INPUT);
+  //pinMode(butPin, INPUT);
 }
 
 void loop() {
@@ -70,14 +71,84 @@ void loop() {
   lcd.display();
   delay(500);*/
   val1 = readPotNum();
+  calc = String(val1);
+  delay(500);
+  operation = getOperator();
+  switch(operation){
+    case 1:
+      sOperator = "+";
+      break;
+    case 2:
+      sOperator = "-";
+      break;
+    case 3:
+      sOperator = "*";
+      break;
+    case 4:
+      sOperator = "/";
+      break;
+  }
+  calc = String(val1)+sOperator;
+  delay(500);
+  val2 = readPotNum();
+  calc = String(val1)+sOperator+String(val2);
+  switch(operation){
+    case 1:
+      result = val1+val2;
+      break;
+    case 2:
+      result = val1-val2;
+      break;
+    case 3:
+      result = val1*val2;
+      break;
+    case 4:
+      result = val1/val2;
+      break;
+  }
+  lcd.setCursor(0,1);
+  lcd.print(result);
+  delay(500);
+  while(!digitalRead(butPin)){}
+  calc="";
+  delay(500);
 }
 
 int readPotNum(){
+  int potRead;
   while(!digitalRead(butPin)){
-    int potRead = analogRead(potPin);
-    Serial.println(potRead);
-    //lcd.print(calc + potRead);
+    potRead = analogRead(potPin);
+    lcd.clear();
+    lcd.print(calc);
+    lcd.print(potRead);
     delay(100);
   }
+  return potRead;
 }
+int getOperator(){
+  int operation2;
+while(!digitalRead(butPin)){
+    int potRead = analogRead(potPin);
+    operation2;
+    lcd.clear();
+    lcd.print(calc);
+    if(potRead <= 255){
+      lcd.print("+");
+      operation2=1;
+    }else if(potRead<=510){
+      lcd.print("-");
+      operation2=2;
+    }else if(potRead<=765){
+      lcd.print("*");
+      operation2=3;
+    }else{
+      lcd.print("/");
+      operation2=4;
+    }
+    delay(100);
+    
+  }
+  return operation2;
+}
+
 
