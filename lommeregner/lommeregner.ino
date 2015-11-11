@@ -48,10 +48,13 @@ int butPin = 10;
 int val1;
 int val2;
 int operation;
-int result;
+double result;
+
 
 String sOperator;
 String calc;
+
+bool divideBy0 = false;
 
 void setup() {
   // set up the LCD's number of columns and rows:
@@ -60,6 +63,7 @@ void setup() {
   //lcd.print("hello, world!");
  Serial.begin(9600);
   //pinMode(butPin, INPUT);
+  pinMode(9, OUTPUT);
 }
 
 void loop() {
@@ -70,6 +74,7 @@ void loop() {
   // Turn on the display:
   lcd.display();
   delay(500);*/
+  divideBy0=false;
   val1 = readPotNum();
   calc = String(val1);
   delay(500);
@@ -94,20 +99,30 @@ void loop() {
   calc = String(val1)+sOperator+String(val2);
   switch(operation){
     case 1:
-      result = val1+val2;
+      result = (double)val1+val2;
       break;
     case 2:
-      result = val1-val2;
+      result = (double)val1-val2;
       break;
     case 3:
-      result = val1*val2;
+      result = (double)val1*val2;
       break;
     case 4:
-      result = val1/val2;
+      if(val2==0){
+        divideBy0=true;
+      }else{
+        result = (double)val1/val2;
+      }
       break;
   }
-  lcd.setCursor(0,1);
-  lcd.print(result);
+  if(divideBy0){
+     lcd.setCursor(0,1);
+     lcd.print("ERROR");
+     
+  }else{
+    lcd.setCursor(0,1);
+    lcd.print(result);
+  }
   delay(500);
   while(!digitalRead(butPin)){}
   calc="";
