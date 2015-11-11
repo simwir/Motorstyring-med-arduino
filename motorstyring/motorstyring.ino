@@ -3,7 +3,7 @@ int potAIn = 1; //Analog Read pin for the potentiometer
 int directionDOut = 12; //Digital write pin for the motor direction
 int speedPwmOut = 11; //Digital PWM write pin for the speed of the motor
 int debugPin = 13;
-double waitCurve = -3/1023; //The gradient for the wait curve. -3/255 = between 5 and 2 sek
+double waitCurve = -16000/1023; //The gradient for the wait curve. -16000/1023 = between 20 and 4 sek
 
 void setup() {
   //Setting the pinmodes for the pins
