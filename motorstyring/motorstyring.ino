@@ -37,17 +37,16 @@ void loop() {
  * Returns the state of the state switch as a int between 1-4.
  * instead of between 1-1023.
  */
-int getSate(){
+int getState(){
   int state = analogRead(stateAIn);
   if(state>884){
-    beginWait();
     return 1;
   }else if(state<=884&&state>628){
     return 2;
   }else if(state<=628&&state>383){
     return 3;
   }else if(state<=383){
-    return 3;
+    return 4;
   }else{
     //Should never happen, if it does something went very wrong.
     digitalWrite(debugPin, HIGH);
@@ -67,7 +66,7 @@ void beginWait(){
  * If that is true then is calls a slowMove() and beginWait()
  */
 void modeWait(){
-  if(millis()>waitCurve*analogRead(1)+maxWait){
+  if(millis()>waitCurve*analogRead(1)+maxWait+waitBegin){
     slowMove();
     beginWait();
   }
