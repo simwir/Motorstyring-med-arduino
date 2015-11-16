@@ -4,6 +4,11 @@ int directionDOut = 12; //Digital write pin for the motor direction
 int speedPwmOut = 11; //Digital PWM write pin for the speed of the motor
 int debugPin = 13;
 
+int slowRight = 2;
+int slowLeft = 3;
+int fastRight = 4;
+int fastLeft = 5;
+
 double waitCurve = -16000/1023; //The gradient for the wait curve. -16000/1023 = between 20 and 4 sek
 double maxWait = 20000; //The maximum wait in millis
 unsigned long waitBegin; //The begin time of the wait in millis
@@ -13,6 +18,13 @@ void setup() {
   pinMode(13, OUTPUT);
   pinMode(12, OUTPUT);
   pinMode(11, OUTPUT);
+
+  pinMode(2, OUTPUT);
+  pinMode(3, OUTPUT);
+  pinMode(4, OUTPUT);
+  pinMode(5, OUTPUT);
+
+  Serial.begin(9600);
 }
 
 void loop() {
@@ -29,6 +41,7 @@ void loop() {
       slowMove();
       break;
     case 4:
+      Serial.println("Calling fast move");
       fastMove();
       break;
   }
@@ -37,17 +50,22 @@ void loop() {
  * Returns the state of the state switch as a int between 1-4.
  * instead of between 1-1023.
  */
-int getSate(){
+int getState(){
   int state = analogRead(stateAIn);
+  Serial.println(state);
   if(state>884){
-    beginWait();
+    Serial.println("1");
     return 1;
   }else if(state<=884&&state>628){
+    //beginWait();
+    Serial.println("2");
     return 2;
   }else if(state<=628&&state>383){
+    Serial.println("3");
     return 3;
   }else if(state<=383){
-    return 3;
+    Serial.println("4");
+    return 4;
   }else{
     //Should never happen, if it does something went very wrong.
     digitalWrite(debugPin, HIGH);
@@ -67,22 +85,42 @@ void beginWait(){
  * If that is true then is calls a slowMove() and beginWait()
  */
 void modeWait(){
-  if(millis()>waitCurve*analogRead(1)+maxWait){
+  Serial.println("modeWait()");
+  Serial.print("wait ");
+  Serial.println(waitCurve*analogRead(potAIn)+maxWait+waitBegin);
+  Serial.print("millis ");
+  Serial.println(millis());
+  if(millis()>waitCurve*analogRead(potAIn)+maxWait+waitBegin){
+    Serial.println("Millis>");
     slowMove();
     beginWait();
+    //waitBegin = millis();
   }
+  delay(300);
 }
 
 /**
  * Moves the wiper slowly up and back a single time
  */
 void slowMove(){
-  
+  Serial.println("slowMove()");
+  digitalWrite(slowRight, HIGH);
+  delay(1000);
+  digitalWrite(slowRight, LOW);
+  digitalWrite(slowLeft, HIGH);
+  delay(1000);
+  digitalWrite(slowLeft, LOW);
 }
 
 /**
  * Moves the wiper fast up and back a single time
  */
 void fastMove(){
-  
+  Serial.println("fastMove()");
+  digitalWrite(fastRight, HIGH);
+  delay(200);
+  digitalWrite(fastRight, LOW);
+  digitalWrite(fastLeft, HIGH);
+  delay(200);
+  digitalWrite(fastLeft, LOW);
 }
