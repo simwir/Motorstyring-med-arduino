@@ -4,6 +4,10 @@ int directionDOut = 12; //Digital write pin for the motor direction
 int speedPwmOut = 11; //Digital PWM write pin for the speed of the motor
 int debugPin = 13;
 
+int slowSpeed = 128;
+int fastSpeed = 255;
+int waitTime = 250;
+
 double waitCurve = -16000/1023; //The gradient for the wait curve. -16000/1023 = between 20 and 4 sek
 double maxWait = 20000; //The maximum wait in millis
 unsigned long waitBegin; //The begin time of the wait in millis
@@ -76,12 +80,32 @@ void modeWait(){
  * Moves the wiper slowly up and back a single time
  */
 void slowMove(){
-  
+  digitalWrite(directionDOut, HIGH);
+  analogWrite(speedPwmOut, slowSpeed);
+  delay(1000);
+  digitalWrite(speedPwmOut, LOW);
+  digitalWrite(directionDOut, LOW);
+  delay(waitTime);
+  analogWrite(speedPwmOut, slowSpeed);
+  delay(1000);
+  digitalWrite(speedPwmOut, LOW);
+  digitalWrite(directionDOut, HIGH);
+  delay(waitTime);
 }
 
 /**
  * Moves the wiper fast up and back a single time
  */
 void fastMove(){
-  
+  digitalWrite(directionDOut, HIGH);
+  analogWrite(speedPwmOut, fastSpeed);
+  delay(500);
+  digitalWrite(speedPwmOut, LOW);
+  digitalWrite(directionDOut, LOW);
+  delay(waitTime);
+  analogWrite(speedPwmOut, fastSpeed);
+  delay(500);
+  digitalWrite(speedPwmOut, LOW);
+  digitalWrite(directionDOut, HIGH);
+  delay(waitTime);
 }
