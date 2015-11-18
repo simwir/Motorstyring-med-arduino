@@ -1,12 +1,17 @@
 int stateAIn = 0; //Analog Read pin for the stateswitch
 int potAIn = 1; //Analog Read pin for the potentiometer
 int directionDOut = 12; //Digital write pin for the motor direction
-int speedPwmOut = 11; //Digital PWM write pin for the speed of the motor
+int speedPwmOut = 13; //Digital PWM write pin for the speed of the motor
 int debugPin = 13;
 
 int slowSpeed = 128;
 int fastSpeed = 255;
 int waitTime = 250;
+
+int slowRight = 2;
+int slowLeft = 3;
+int fastRight = 4;
+int fastLeft = 5;
 
 double waitCurve = -16000/1023; //The gradient for the wait curve. -16000/1023 = between 20 and 4 sek
 double maxWait = 20000; //The maximum wait in millis
@@ -17,6 +22,13 @@ void setup() {
   pinMode(13, OUTPUT);
   pinMode(12, OUTPUT);
   pinMode(11, OUTPUT);
+
+  pinMode(2, OUTPUT);
+  pinMode(3, OUTPUT);
+  pinMode(4, OUTPUT);
+  pinMode(5, OUTPUT);
+
+  Serial.begin(9600);
 }
 
 void loop() {
@@ -27,9 +39,11 @@ void loop() {
       //Does nothing since this means off
       break;
     case 2:
+    Serial.println("case2");
       modeWait();
       break;
     case 3:
+      Serial.println("case3");
       slowMove();
       break;
     case 4:
@@ -80,6 +94,33 @@ void modeWait(){
  * Moves the wiper slowly up and back a single time
  */
 void slowMove(){
+  Serial.println("slowMove");
+  long stTime = millis();
+  Serial.println(stTime);
+  long timeSinceStart = millis()-stTime;
+  Serial.println(timeSinceStart);
+  while(millis()-stTime<2000){
+    double rad = ((2*PI)/2000)*timeSinceStart;
+    Serial.println(rad);
+    double sinus = sin(rad);
+    Serial.println(timeSinceStart);
+    int mSpeed = map(sinus,-1,1,-255,255);
+    Serial.println(mSpeed);
+    mSpeed = constrain(mSpeed, -255,255);
+    if(mSpeed<0){
+      digitalWrite(directionDOut, LOW);
+      analogWrite(speedPwmOut, mSpeed+mSpeed^2);
+    }else if(mSpeed==0){
+      digitalWrite(speedPwmOut, LOW);
+      delay(50);
+    }else{
+      digitalWrite(directionDOut, HIGH);
+      analogWrite(speedPwmOut, mSpeed);
+    }
+  }
+
+  
+  /*
   digitalWrite(directionDOut, HIGH);
   analogWrite(speedPwmOut, slowSpeed);
   delay(1000);
@@ -90,7 +131,7 @@ void slowMove(){
   delay(1000);
   digitalWrite(speedPwmOut, LOW);
   digitalWrite(directionDOut, HIGH);
-  delay(waitTime);
+  delay(waitTime);*/
 }
 
 /**
