@@ -4,39 +4,31 @@ int directionDOut = 12; //Digital write pin for the motor direction
 int speedPwmOut = 11; //Digital PWM write pin for the speed of the motor
 int debugPin = 13;
 
-int slowSpeed = 128;
-int fastSpeed = 255;
-int waitTime = 250;
-
-double waitCurve = -16000/1023; //The gradient for the wait curve. -16000/1023 = between 20 and 4 sek
-double maxWait = 20000; //The maximum wait in millis
-unsigned long waitBegin; //The begin time of the wait in millis
-
 void setup() {
-  //Setting the pinmodes for the pins
   pinMode(13, OUTPUT);
   pinMode(12, OUTPUT);
   pinMode(11, OUTPUT);
+
 }
 
 void loop() {
-
   //A switch depending on the state of the state switch
   switch(getState()){
     case 1:
-      //Does nothing since this means off
+      digitalWrite(speedPwmOut, LOW);
       break;
     case 2:
-      modeWait();
+      Left();
       break;
     case 3:
-      slowMove();
+      digitalWrite(speedPwmOut, LOW);
       break;
     case 4:
-      fastMove();
+      Right();
       break;
   }
 }
+
 /**
  * Returns the state of the state switch as a int between 1-4.
  * instead of between 1-1023.
@@ -58,54 +50,19 @@ int getState(){
   }
 }
 
-/**
- * Sets the wait timer to the current time
- */
-void beginWait(){
-  waitBegin = millis();
+void Left(){
+  moveRL(false);
 }
 
-/**
- * Checks if the current tima has exceeded the time to wait.
- * If that is true then is calls a slowMove() and beginWait()
- */
-void modeWait(){
-  if(millis()>waitCurve*analogRead(1)+maxWait+waitBegin){
-    slowMove();
-    beginWait();
+void Right(){
+  moveRL(true);
+}
+
+void moveRL(boolean right){
+  if(right){
+    digitalWrite(directionDOut, HIGH);
+  }else{
+    digitalWrite(directionDOut, LOW);
   }
-}
-
-/**
- * Moves the wiper slowly up and back a single time
- */
-void slowMove(){
-  digitalWrite(directionDOut, HIGH);
-  analogWrite(speedPwmOut, slowSpeed);
-  delay(1000);
-  digitalWrite(speedPwmOut, LOW);
-  digitalWrite(directionDOut, LOW);
-  delay(waitTime);
-  analogWrite(speedPwmOut, slowSpeed);
-  delay(1000);
-  digitalWrite(speedPwmOut, LOW);
-  digitalWrite(directionDOut, HIGH);
-  delay(waitTime);
-}
-
-/**
- * Moves the wiper fast up and back a single time
- */
-void fastMove(){
-  digitalWrite(directionDOut, HIGH);
-  analogWrite(speedPwmOut, fastSpeed);
-  delay(500);
-  digitalWrite(speedPwmOut, LOW);
-  digitalWrite(directionDOut, LOW);
-  delay(waitTime);
-  analogWrite(speedPwmOut, fastSpeed);
-  delay(500);
-  digitalWrite(speedPwmOut, LOW);
-  digitalWrite(directionDOut, HIGH);
-  delay(waitTime);
+  analogWrite(speedPwmOut, analogRead(potAIn)/4);
 }
