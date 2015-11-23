@@ -10,11 +10,6 @@ int waitTime = 250;
 int slowCycle = 2000;
 int fastCycle = 1000;
 
-int slowRight = 2;
-int slowLeft = 3;
-int fastRight = 4;
-int fastLeft = 5;
-
 double waitCurve = -16000/1023; //The gradient for the wait curve. -16000/1023 = between 20 and 4 sek
 double maxWait = 20000; //The maximum wait in millis
 unsigned long waitBegin; //The begin time of the wait in millis
@@ -24,13 +19,6 @@ void setup() {
   pinMode(13, OUTPUT);
   pinMode(12, OUTPUT);
   pinMode(11, OUTPUT);
-
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
-  pinMode(5, OUTPUT);
-
-  Serial.begin(9600);
 }
 
 void loop() {
@@ -41,11 +29,9 @@ void loop() {
       //Does nothing since this means off
       break;
     case 2:
-    //Serial.println("case2");
       modeWait();
       break;
     case 3:
-      //Serial.println("case3");
       slowMove();
       break;
     case 4:
@@ -131,25 +117,19 @@ void moveMotor(int cycleTime){
     //depending on the mSpeed do different things
     if(mSpeed<-21){
       analogWrite(speedPwmOut, mSpeed+mSpeed^2);
-      //Serial.println("<0 HIGH");
-      Serial.println(mSpeed);
       hasBeenLow=true;
     }else if(mSpeed>-21&&mSpeed<21){
       digitalWrite(speedPwmOut, LOW);
       if(hasBeenLow){
         digitalWrite(directionDOut, LOW);
-        //Serial.println("nulpunkt low");
       }else if(hasBeenHigh){
         digitalWrite(directionDOut, HIGH);
-        //Serial.println("nulpunkt high");
       }else{
         digitalWrite(directionDOut, LOW);
-        //Serial.println("nulpunkt low");
       }
       Serial.println("0");
     }else{
       digitalWrite(directionDOut, LOW);
-      //Serial.println(">0 LOW");
       hasBeenHigh=true;
       analogWrite(speedPwmOut, mSpeed);
       Serial.println(mSpeed);
