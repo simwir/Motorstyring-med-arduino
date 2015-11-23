@@ -1,17 +1,14 @@
-int stateAIn = 0; //Analog Read pin for the stateswitch
-int potAIn = 1; //Analog Read pin for the potentiometer
-int directionDOut = 12; //Digital write pin for the motor direction
-int speedPwmOut = 11; //Digital PWM write pin for the speed of the motor
-int debugPin = 13;
+int const stateAIn = 0; //Analog Read pin for the stateswitch
+int const potAIn = 1; //Analog Read pin for the potentiometer
+int const directionDOut = 12; //Digital write pin for the motor direction
+int const speedPwmOut = 11; //Digital PWM write pin for the speed of the motor
+int const debugPin = 13;
 
-int slowSpeed = 128;
-int fastSpeed = 255;
-int waitTime = 250;
-int slowCycle = 2000;
-int fastCycle = 1000;
+int const slowCycle = 2000; //The duration of the slow cycle
+int const fastCycle = 1000; //The duration of the fast cycle
 
-double waitCurve = -16000/1023; //The gradient for the wait curve. -16000/1023 = between 20 and 4 sek
-double maxWait = 20000; //The maximum wait in millis
+double const waitCurve = -16000/1023; //The gradient for the wait curve. -16000/1023 = between 20 and 4 sek
+double const maxWait = 20000; //The maximum wait in millis
 unsigned long waitBegin; //The begin time of the wait in millis
 
 void setup() {
