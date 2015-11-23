@@ -1,12 +1,14 @@
 int stateAIn = 0; //Analog Read pin for the stateswitch
 int potAIn = 1; //Analog Read pin for the potentiometer
 int directionDOut = 12; //Digital write pin for the motor direction
-int speedPwmOut = 13; //Digital PWM write pin for the speed of the motor
+int speedPwmOut = 11; //Digital PWM write pin for the speed of the motor
 int debugPin = 13;
 
 int slowSpeed = 128;
 int fastSpeed = 255;
 int waitTime = 250;
+int slowCycle = 2000;
+int fastCycle = 1000;
 
 int slowRight = 2;
 int slowLeft = 3;
@@ -32,18 +34,18 @@ void setup() {
 }
 
 void loop() {
-
+  
   //A switch depending on the state of the state switch
   switch(getState()){
     case 1:
       //Does nothing since this means off
       break;
     case 2:
-    Serial.println("case2");
+    //Serial.println("case2");
       modeWait();
       break;
     case 3:
-      Serial.println("case3");
+      //Serial.println("case3");
       slowMove();
       break;
     case 4:
@@ -94,59 +96,64 @@ void modeWait(){
  * Moves the wiper slowly up and back a single time
  */
 void slowMove(){
-  Serial.println("slowMove");
-  long stTime = millis();
-  Serial.println(stTime);
-  long timeSinceStart = millis()-stTime;
-  Serial.println(timeSinceStart);
-  while(millis()-stTime<2000){
-    double rad = ((2*PI)/2000)*timeSinceStart;
-    Serial.println(rad);
-    double sinus = sin(rad);
-    Serial.println(timeSinceStart);
-    int mSpeed = map(sinus,-1,1,-255,255);
-    Serial.println(mSpeed);
-    mSpeed = constrain(mSpeed, -255,255);
-    if(mSpeed<0){
-      digitalWrite(directionDOut, LOW);
-      analogWrite(speedPwmOut, mSpeed+mSpeed^2);
-    }else if(mSpeed==0){
-      digitalWrite(speedPwmOut, LOW);
-      delay(50);
-    }else{
-      digitalWrite(directionDOut, HIGH);
-      analogWrite(speedPwmOut, mSpeed);
-    }
-  }
-
-  
-  /*
-  digitalWrite(directionDOut, HIGH);
-  analogWrite(speedPwmOut, slowSpeed);
-  delay(1000);
-  digitalWrite(speedPwmOut, LOW);
-  digitalWrite(directionDOut, LOW);
-  delay(waitTime);
-  analogWrite(speedPwmOut, slowSpeed);
-  delay(1000);
-  digitalWrite(speedPwmOut, LOW);
-  digitalWrite(directionDOut, HIGH);
-  delay(waitTime);*/
+  moveMotor(slowCycle);
 }
 
 /**
  * Moves the wiper fast up and back a single time
  */
 void fastMove(){
-  digitalWrite(directionDOut, HIGH);
-  analogWrite(speedPwmOut, fastSpeed);
-  delay(500);
+  moveMotor(fastCycle);
+}
+
+
+void moveMotor(int cycleTime){
+  //Saves the times to get the passed time
+  long stTime = millis();
+
+  bool hasBeenHigh = false;
+  bool hasBeenLow = false;
+
+
+  //While loob that runs as long as the wait time has not passed
+  while(millis()-stTime<cycleTime){
+    
+    //updating varible of the time since the start time
+    long timeSinceStart = millis()-stTime;
+    
+
+    //Calculating the sinus curve
+    double rad = ((2*PI)/cycleTime)*timeSinceStart;
+    double sinus = sin(rad);
+    int mSpeed = 255*sinus;
+    mSpeed = constrain(mSpeed, -255,255);
+
+    //depending on the mSpeed do different things
+    if(mSpeed<-21){
+      analogWrite(speedPwmOut, mSpeed+mSpeed^2);
+      //Serial.println("<0 HIGH");
+      Serial.println(mSpeed);
+      hasBeenLow=true;
+    }else if(mSpeed>-21&&mSpeed<21){
+      digitalWrite(speedPwmOut, LOW);
+      if(hasBeenLow){
+        digitalWrite(directionDOut, LOW);
+        //Serial.println("nulpunkt low");
+      }else if(hasBeenHigh){
+        digitalWrite(directionDOut, HIGH);
+        //Serial.println("nulpunkt high");
+      }else{
+        digitalWrite(directionDOut, LOW);
+        //Serial.println("nulpunkt low");
+      }
+      Serial.println("0");
+    }else{
+      digitalWrite(directionDOut, LOW);
+      //Serial.println(">0 LOW");
+      hasBeenHigh=true;
+      analogWrite(speedPwmOut, mSpeed);
+      Serial.println(mSpeed);
+    }
+  }
   digitalWrite(speedPwmOut, LOW);
-  digitalWrite(directionDOut, LOW);
-  delay(waitTime);
-  analogWrite(speedPwmOut, fastSpeed);
-  delay(500);
-  digitalWrite(speedPwmOut, LOW);
-  digitalWrite(directionDOut, HIGH);
-  delay(waitTime);
 }
