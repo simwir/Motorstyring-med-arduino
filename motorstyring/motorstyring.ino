@@ -1,15 +1,14 @@
-int stateAIn = 0; //Analog Read pin for the stateswitch
-int potAIn = 1; //Analog Read pin for the potentiometer
-int directionDOut = 12; //Digital write pin for the motor direction
-int speedPwmOut = 11; //Digital PWM write pin for the speed of the motor
-int debugPin = 13;
+int const stateAIn = 0; //Analog Read pin for the stateswitch
+int const potAIn = 1; //Analog Read pin for the potentiometer
+int const directionDOut = 12; //Digital write pin for the motor direction
+int const speedPwmOut = 11; //Digital PWM write pin for the speed of the motor
+int const debugPin = 13;
 
-int slowSpeed = 128;
-int fastSpeed = 255;
-int waitTime = 250;
+int const slowCycle = 2000; //The duration of the slow cycle
+int const fastCycle = 1000; //The duration of the fast cycle
 
-double waitCurve = -16000/1023; //The gradient for the wait curve. -16000/1023 = between 20 and 4 sek
-double maxWait = 20000; //The maximum wait in millis
+double const waitCurve = -16000/1023; //The gradient for the wait curve. -16000/1023 = between 20 and 4 sek
+double const maxWait = 20000; //The maximum wait in millis
 unsigned long waitBegin; //The begin time of the wait in millis
 
 void setup() {
@@ -20,19 +19,23 @@ void setup() {
 }
 
 void loop() {
-
+  
   //A switch depending on the state of the state switch
   switch(getState()){
     case 1:
       //Does nothing since this means off
       break;
     case 2:
+      //Run the wait funktion for the interval
       modeWait();
       break;
     case 3:
+      //Run the slow movement funktion directly
+      //this will make it so there is no wait in between
       slowMove();
       break;
     case 4:
+      //Runs the fast movement funktion
       fastMove();
       break;
   }
@@ -80,32 +83,69 @@ void modeWait(){
  * Moves the wiper slowly up and back a single time
  */
 void slowMove(){
-  digitalWrite(directionDOut, HIGH);
-  analogWrite(speedPwmOut, slowSpeed);
-  delay(1000);
-  digitalWrite(speedPwmOut, LOW);
-  digitalWrite(directionDOut, LOW);
-  delay(waitTime);
-  analogWrite(speedPwmOut, slowSpeed);
-  delay(1000);
-  digitalWrite(speedPwmOut, LOW);
-  digitalWrite(directionDOut, HIGH);
-  delay(waitTime);
+  moveMotor(slowCycle);
 }
 
 /**
  * Moves the wiper fast up and back a single time
  */
 void fastMove(){
-  digitalWrite(directionDOut, HIGH);
-  analogWrite(speedPwmOut, fastSpeed);
-  delay(500);
+  moveMotor(fastCycle);
+}
+
+/**
+ * Here the movement it self is handled.
+ * It's called by either slowMove or fastMove,
+ * and the cycle time is the only difference.
+ */
+void moveMotor(int cycleTime){
+  //Saves the times to get the passed time
+  long stTime = millis();
+
+  //We need to keep trak of if we have been high or low,
+  //on the sinus curve
+  bool hasBeenHigh = false;
+  bool hasBeenLow = false;
+
+
+  //While loob that runs as long as the wait time has not passed
+  while(millis()-stTime<cycleTime){
+    
+    //updating varible of the time since the start time
+    long timeSinceStart = millis()-stTime;
+    
+
+    //Calculating the sinus curve
+    double rad = ((2*PI)/cycleTime)*timeSinceStart;
+    double sinus = sin(rad);
+    int mSpeed = 255*sinus;
+    mSpeed = constrain(mSpeed, -255,255);
+
+    //depending on the mSpeed do different things
+    //if we are below 21 we run backwards by setting the relay to high
+    if(mSpeed<-21){
+      //We write the absolute of the speed to remove the -
+      analogWrite(speedPwmOut, abs(mSpeed));
+      //We set hasBeenLow to true so the change period handles corectly
+      hasBeenLow=true;
+    //If the speed is 0 or close to 0 change the direction of the relay.
+    //The interval is determened by testing where the motor can't move
+    }else if(mSpeed>-21&&mSpeed<21){
+      //Stop the motor
+      digitalWrite(speedPwmOut, LOW);
+      //Determen where we are in the sinus curve and handle acordingly
+      if(hasBeenLow){
+        digitalWrite(directionDOut, LOW);
+      }else if(hasBeenHigh){
+        digitalWrite(directionDOut, HIGH);
+      }else{
+        digitalWrite(directionDOut, LOW);
+      }
+    }else{
+      hasBeenHigh=true;
+      analogWrite(speedPwmOut, mSpeed);
+    }
+  }
+  //Make sure the motor is not running when we are done
   digitalWrite(speedPwmOut, LOW);
-  digitalWrite(directionDOut, LOW);
-  delay(waitTime);
-  analogWrite(speedPwmOut, fastSpeed);
-  delay(500);
-  digitalWrite(speedPwmOut, LOW);
-  digitalWrite(directionDOut, HIGH);
-  delay(waitTime);
 }
