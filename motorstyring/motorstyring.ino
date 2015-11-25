@@ -26,12 +26,16 @@ void loop() {
       //Does nothing since this means off
       break;
     case 2:
+      //Run the wait funktion for the interval
       modeWait();
       break;
     case 3:
+      //Run the slow movement funktion directly
+      //this will make it so there is no wait in between
       slowMove();
       break;
     case 4:
+      //Runs the fast movement funktion
       fastMove();
       break;
   }
@@ -89,11 +93,17 @@ void fastMove(){
   moveMotor(fastCycle);
 }
 
-
+/**
+ * Here the movement it self is handled.
+ * It's called by either slowMove or fastMove,
+ * and the cycle time is the only difference.
+ */
 void moveMotor(int cycleTime){
   //Saves the times to get the passed time
   long stTime = millis();
 
+  //We need to keep trak of if we have been high or low,
+  //on the sinus curve
   bool hasBeenHigh = false;
   bool hasBeenLow = false;
 
@@ -112,12 +122,18 @@ void moveMotor(int cycleTime){
     mSpeed = constrain(mSpeed, -255,255);
 
     //depending on the mSpeed do different things
+    //if we are below 21 we run backwards by setting the relay to high
     if(mSpeed<-21){
+      //We write the absolute of the speed to remove the -
       analogWrite(speedPwmOut, abs(mSpeed));
-      digitalWrite(directionDOut, HIGH);
+      //We set hasBeenLow to true so the change period handles corectly
       hasBeenLow=true;
+    //If the speed is 0 or close to 0 change the direction of the relay.
+    //The interval is determened by testing where the motor can't move
     }else if(mSpeed>-21&&mSpeed<21){
+      //Stop the motor
       digitalWrite(speedPwmOut, LOW);
+      //Determen where we are in the sinus curve and handle acordingly
       if(hasBeenLow){
         digitalWrite(directionDOut, LOW);
       }else if(hasBeenHigh){
@@ -126,10 +142,10 @@ void moveMotor(int cycleTime){
         digitalWrite(directionDOut, LOW);
       }
     }else{
-      digitalWrite(directionDOut, LOW);
       hasBeenHigh=true;
       analogWrite(speedPwmOut, mSpeed);
     }
   }
+  //Make sure the motor is not running when we are done
   digitalWrite(speedPwmOut, LOW);
 }
