@@ -113,7 +113,8 @@ void moveMotor(int cycleTime){
 
     //depending on the mSpeed do different things
     if(mSpeed<-21){
-      analogWrite(speedPwmOut, mSpeed+mSpeed^2);
+      analogWrite(speedPwmOut, abs(mSpeed));
+      digitalWrite(directionDOut, HIGH);
       hasBeenLow=true;
     }else if(mSpeed>-21&&mSpeed<21){
       digitalWrite(speedPwmOut, LOW);
@@ -124,12 +125,10 @@ void moveMotor(int cycleTime){
       }else{
         digitalWrite(directionDOut, LOW);
       }
-      Serial.println("0");
     }else{
       digitalWrite(directionDOut, LOW);
       hasBeenHigh=true;
       analogWrite(speedPwmOut, mSpeed);
-      Serial.println(mSpeed);
     }
   }
   digitalWrite(speedPwmOut, LOW);
